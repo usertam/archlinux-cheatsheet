@@ -1,13 +1,22 @@
-# Configuring network
+# Network configurations
 
-## Setup wireless network in archiso
-The archiso has iwd.service enabled by default, and should be auto-started on boot. \
-If you want to manually restart it anyway, do:
+## Wireless networks
+
+### Live environment
+The live environment already has the service enabled and started by default. \
+To manually restart it anyway, do:
 ```sh
 systemctl restart iwd.service
 ```
 
-### Connect to a network using iwctl
+### New installation
+Download ```iwd```, then start the systemd service. 
+```sh
+pacman -S iwd
+systemctl start iwd.service
+```
+
+### Connect to a network
 Most iwd commands are self-explanatory, here are a few you might need connecting to a new network: 
 ```
 $ iwctl
@@ -27,8 +36,7 @@ Below are some examples.
 ```30-wired.network```: 
 ```
 [Match]
-Type=ether
-Name=en*
+Name=eno1
 
 [Network]
 DHCP=yes
@@ -37,7 +45,7 @@ DHCP=yes
 ```35-wireless.network```: 
 ```
 [Match]
-Type=wlan
+Name=wlan0
 
 [Network]
 DHCP=yes
@@ -55,32 +63,36 @@ Gateway=192.168.1.1
 DNS=192.168.1.1
 ```
 
-### Start and enable the services and link resolv.conf
+### Link resolv.conf
 ```sh
-systemctl start systemd-networkd systemd-resolved
-systemctl enable systemd-networkd systemd-resolved
 ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 ```
 
-## It's internet test time!
-
-### Check what works using ping
-Work the commands from up to down, refer to the description of the successful ping. 
+### Enable and start the network services
 ```sh
-ping archlinux.org # archlinux website - prefectly working internet
-ping 1.1.1.1 # cloudflare dns server ip - internet working, but not able to resolve
-ping 192.168.1.1 # router ip - internet is down, only lan network
-ping 127.0.0.1 # loopback device - you sure you are connected to a network?
+systemctl enable systemd-networkd systemd-resolved
+systemctl start systemd-networkd systemd-resolved
 ```
 
-### List available network interfaces
+## Internet test time!
+
+### Check what works using ping
+Work the commands from top to bottom, refer to description of the successful ping. 
+```sh
+ping archlinux.org # arch linux site - working internet
+ping 1.1.1.1 # cloudflare dns - unable to resolve
+ping 192.168.1.1 # router - no access to internet, only lan network
+```
+
+### Show info of network interfaces
+Below commands might help. 
 ```sh
 ip a # show all interfaces
 ip a show eno1 # show status of specified interface
-networkctl list # systemd-networkd tool to show all and configuration status
+networkctl list # show systemd-networkd config status
 ```
 
-### Check status of systemd services
+### Check status of network services
 ```sh
 systemctl status systemd-networkd
 systemctl status systemd-resolved
